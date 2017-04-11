@@ -1,0 +1,247 @@
+setwd("F:/Purdue University/Courses/Semester 2/Risk and Decision Analysis/Take Home Exam/Final")
+recs <- read.csv("RECS05alldata.csv", header = TRUE, stringsAsFactors = FALSE)
+head(recs)
+library(dplyr)
+midwest<-filter(recs, recs$REGIONC == 2)
+housing <- read.csv("RECS05file1.csv", header = TRUE, stringsAsFactors = FALSE)
+Energy_Consump <- read.csv("RECS05file11.csv", header = TRUE, stringsAsFactors = FALSE)
+final <-filter(recs[1:5], recs$REGIONC == 2)
+final$HUQ <- midwest$TYPEHUQ
+#Creating a new variable called HUQ -Type of housing unit 
+#based on TYPEHUQ, CNFRHUQ and ALTHUQ
+for(i in 1:nrow(midwest)){
+  if(midwest$CNFRMHUQ[i] == 1 ){
+    final$HUQ[i] = midwest$TYPEHUQ[i]
+  }
+  else if(midwest$CNFRMHUQ[i] == 0  & midwest$REVHUQ[i] == 1){
+    final$HUQ[i] = midwest$ALTHUQ[i]
+  }
+  else if(midwest$CNFRMHUQ[i] == 0  & midwest$REVHUQ[i] == 2){
+    final$HUQ[i] = midwest$TYPEHUQ[i]
+  }
+}
+#If the house is a studio then the value of HUQ is set to '6'
+for(i in 1:nrow(midwest)){
+  if(midwest$STUDIO[i] == 1 ){
+    final$HUQ[i] = 6
+  }
+}
+#Creating a variable to have the number of floors in a single home
+final$FLOOR <- 0
+for(i in 1:nrow(midwest)){
+  if(midwest$STORIES[i] == 10 ){
+    final$FLOOR[i] = 1
+  }
+  else if(midwest$STORIES[i] == 20 ){
+    final$FLOOR[i] = 2
+  }
+  else if(midwest$STORIES[i] == 31 ){
+    final$FLOOR[i] = 3
+  }
+  else if(midwest$STORIES[i] == 32 ){
+    final$FLOOR[i] = 4
+  }
+  else if(midwest$STORIES[i] == 40 ){
+    final$FLOOR[i] = 5
+  }
+  else if(midwest$STORIES[i] == 50 ){
+    final$FLOOR[i] = 20
+  }
+}
+#If the house is a studio the number of floors is 1
+for(i in 1:nrow(midwest)){
+  if(final$HUQ[i] == 6 ){
+    final$FLOOR[i] = 1
+  }
+}
+
+#If the house is a studio the number of floors is 1
+for(i in 1:nrow(midwest)){
+  if(midwest$TYPEHUQ[i]==4 & midwest$LOOKLIKE[i]==2 ){
+    final$FLOOR[i] = 1
+  }
+}
+for(i in 1:nrow(midwest)){
+  if(midwest$TYPEHUQ[i]==5 & midwest$ONEFLRAPT[i]==1 ){
+    final$FLOOR[i] = 1
+  }
+}
+
+for(i in 1:nrow(midwest)){
+  if(midwest$TYPEHUQ[i]==5 & midwest$NAPTFLRS[i]==2 ){
+    final$FLOOR[i] = 2
+  }
+}
+
+for(i in 1:nrow(midwest)){
+  if(midwest$TYPEHUQ[i]==5 & midwest$NAPTFLRS[i]==3 ){
+    final$FLOOR[i] = 3
+  }
+}
+for(i in 1:nrow(midwest)){
+  if(final$HUQ[i]==1 ){
+    final$FLOOR[i] = 1
+  }
+}
+for(i in 1:nrow(midwest)){
+  if(final$FLOOR[i]==6 ){
+    final$FLOOR[i] = 20
+  }
+}
+for(i in 1:nrow(midwest)){
+  if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==1){
+    final$FLOOR[i] = 1
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==2){
+    final$FLOOR[i] = 2
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==3){
+    final$FLOOR[i] = 3
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==4){
+    final$FLOOR[i] = 4
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==5){
+    final$FLOOR[i] = 5
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==7){
+    final$FLOOR[i] = 7
+  }
+  else if(midwest$TYPEHUQ[i]==5 & midwest$NUMFLRS[i]==15){
+    final$FLOOR[i] = 15
+  }
+}
+
+final$bed <- 0
+final$oth <- 0
+final$bath <- 0
+final$haf <- 0
+final$rooms <- 0
+
+for(i in 1:nrow(midwest)){
+  if(midwest$CNFRMHUQ[i] == 0  & midwest$REVHUQ[i] == 1){
+  if(midwest$ALTHUQ[i]==final$HUQ[i] ){
+    final$bed[i] = midwest$BEDROOMS[i]
+    final$oth[i] = midwest$OTHROOMS[i]
+    final$bath[i] = midwest$NCOMBATH[i]
+    final$haf[i] = midwest$NHAFBATH[i]
+  }
+    else{
+      final$bed[i] = midwest$BEDROOMS[i]
+      final$oth[i] = midwest$OTHROOMS[i]
+      final$bath[i] = midwest$NCOMBATH[i]
+      final$haf[i] = midwest$NHAFBATH[i]
+    }
+  }
+}
+
+final$rooms <- final$bed+final$oth+final$bath+final$haf
+final$bed <- NULL
+final$oth <- NULL
+final$bath <- NULL
+final$haf <- NULL
+final$baseheat <- 0
+for(i in 1:nrow(midwest)){
+  if(midwest$CELLAR[i]==1 & midwest$BASEHEAT[i] == 2 ){
+    if(midwest$PCTBSTHT[i] == 0){
+      final$baseheat[i] = 1
+    }
+    else if(midwest$PCTBSTHT[i] == 1){
+      final$baseheat[i] = 2
+    } 
+    else if(midwest$PCTBSTHT[i] == 2){
+      final$baseheat[i] = 3
+    }
+    else if(midwest$PCTBSTHT[i] == 3){
+      final$baseheat[i] = 4
+    }
+    else if(midwest$PCTBSTHT[i] == 4){
+      final$baseheat[i] = 5
+    }
+  }
+  else if(midwest$CELLAR[i]==1 & midwest$BASEHEAT[i] == 1){
+      final$baseheat[i] = 6
+  }
+}
+
+final$basecool <- 0
+for(i in 1:nrow(midwest)){
+  if(midwest$CELLAR[i]==1 & midwest$BASECOOL[i] == 2 ){
+    if(midwest$PCTBSTCL[i] == 0){
+      final$basecool[i] = 1
+    }
+    else if(midwest$PCTBSTCL[i] == 1){
+      final$basecool[i] = 2
+    } 
+    else if(midwest$PCTBSTCL[i] == 2){
+      final$basecool[i] = 3
+    }
+    else if(midwest$PCTBSTCL[i] == 3){
+      final$basecool[i] = 4
+    }
+    else if(midwest$PCTBSTCL[i] == 4){
+      final$basecool[i] = 5
+    }
+  }
+  else if(midwest$CELLAR[i]==1 & midwest$BASECOOL[i] == 1){
+    final$basecool[i] = 6
+  }
+}
+
+final$attheat <- 0
+for(i in 1:nrow(midwest)){
+  if(midwest$ATTIC[i]==1 & midwest$ATTCHEAT[i] == 2 ){
+    if(midwest$PCTATTHT [i] == 0){
+      final$attheat[i] = 1
+    }
+    else if(midwest$PCTATTHT [i] == 1){
+      final$attheat[i] = 2
+    } 
+    else if(midwest$PCTATTHT [i] == 2){
+      final$attheat[i] = 3
+    }
+    else if(midwest$PCTATTHT [i] == 3){
+      final$attheat[i] = 4
+    }
+    else if(midwest$PCTATTHT [i] == 4){
+      final$attheat[i] = 5
+    }
+  }
+  else if(midwest$ATTIC[i]==1 & midwest$ATTCHEAT[i] == 1){
+    final$attheat[i] = 6
+  }
+}
+
+final$garheat <-0
+final$garcool <-0
+
+for(i in 1:nrow(midwest)){
+  if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE1C[i] == 1 & midwest$GARGHEAT[i]== 1){
+    final$garheat[i] = 1
+  }
+  else if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE2C[i] == 1 & midwest$GARGHEAT[i]== 1){
+    final$garheat[i] = 2
+  }
+  else if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE3C[i] == 1 & midwest$GARGHEAT[i]== 1){
+    final$garheat[i] = 3
+  }
+}
+
+for(i in 1:nrow(midwest)){
+  if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE1C[i] == 1 & midwest$GARGCOOL[i]== 1){
+    final$garcool[i] = 1
+  }
+  else if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE2C[i] == 1 & midwest$GARGCOOL[i]== 1){
+    final$garcool[i] = 2
+  }
+  else if(midwest$PRKGPLC1[i] ==1 & midwest$GARAGE3C[i] == 1 & midwest$GARGCOOL[i]== 1){
+    final$garcool[i] = 3
+  }
+}
+
+a <- filter(midwest, midwest$GARGHEAT == 1)
+table(a$GARAGE1C)
+b <- filter(final, rooms==0)
+table(b$HUQ)
+table(final$garcool)
+save.image("F:/Purdue University/Courses/Semester 2/Risk and Decision Analysis/Take Home Exam/Final/final.Rdata.RData")
